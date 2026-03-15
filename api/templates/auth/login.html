@@ -1,0 +1,56 @@
+{% extends 'auth/base_auth.html' %}
+
+{% block title %}Sign In · Cyber AI{% endblock %}
+
+{% block content %}
+<div class="bg-white dark:bg-gray-900/80 shadow-xl shadow-primary-600/10 border border-gray-100 dark:border-gray-800 rounded-2xl p-8">
+    <div class="mb-6 text-center">
+        <div class="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-primary-600 text-white">
+            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-4 0-7 2-7 4v2h14v-2c0-2-3-4-7-4z" />
+            </svg>
+        </div>
+        <h1 class="text-2xl font-semibold text-gray-900 dark:text-gray-100">Access Cyber AI</h1>
+        <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">Log in to your security operations dashboard.</p>
+    </div>
+
+    <form method="post" class="space-y-5">
+        {% csrf_token %}
+        {% if form.non_field_errors %}
+            <div class="rounded-lg border border-red-200 bg-red-50/70 px-3 py-2 text-sm text-red-700 dark:border-red-900/50 dark:bg-red-900/30 dark:text-red-200">
+                {{ form.non_field_errors|join:' ' }}
+            </div>
+        {% endif %}
+
+        <div class="space-y-2">
+            <label for="id_username" class="text-sm font-medium text-gray-700 dark:text-gray-200">Email</label>
+            {{ form.username }}
+            {% if form.username.errors %}
+                <p class="text-sm text-red-600 dark:text-red-400">{{ form.username.errors|join:' ' }}</p>
+            {% endif %}
+        </div>
+
+        <div class="space-y-2">
+            <div class="flex items-center justify-between">
+                <label for="id_password" class="text-sm font-medium text-gray-700 dark:text-gray-200">Password</label>
+                <a href="#" class="text-xs font-medium text-primary-600 hover:text-primary-500">Forgot?</a>
+            </div>
+            {{ form.password }}
+            {% if form.password.errors %}
+                <p class="text-sm text-red-600 dark:text-red-400">{{ form.password.errors|join:' ' }}</p>
+            {% endif %}
+        </div>
+
+        {% if next %}
+            <input type="hidden" name="next" value="{{ next }}">
+        {% endif %}
+
+        <button type="submit" class="w-full rounded-lg bg-primary-600 py-2.5 text-sm font-semibold text-white hover:bg-primary-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500">Sign In</button>
+    </form>
+
+    <p class="mt-6 text-center text-sm text-gray-600 dark:text-gray-400">
+        No account yet?
+        <a href="{% url 'authentication:register' %}" class="font-medium text-primary-600 hover:text-primary-500">Create one</a>.
+    </p>
+</div>
+{% endblock %}

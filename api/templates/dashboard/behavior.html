@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+
+{% block title %}Behavior Analytics - Cyber AI{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Behavioral Anomaly Monitoring</h1>
+            <p class="text-sm text-gray-500 dark:text-gray-400">Surface insider threats using temporal, location, and device heuristics.</p>
+        </div>
+        <button
+            hx-get="{% url 'dashboard:behavior' %}"
+            hx-target="#behavior-table"
+            hx-swap="innerHTML"
+            class="inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium bg-primary-600 text-white hover:bg-primary-700 transition"
+        >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h4l1 2h7a1 1 0 011 1v11a1 1 0 01-1 1H4a1 1 0 01-1-1V4z"></path></svg>
+            Refresh feed
+        </button>
+    </div>
+
+    <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+        <div class="xl:col-span-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg shadow-sm">
+            <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between">
+                <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Recent activity</h2>
+                <span class="text-xs text-gray-500 dark:text-gray-400">{{ events|length }} events</span>
+            </div>
+            <div id="behavior-table">
+                {% include 'dashboard/partials/behavior_table.html' %}
+            </div>
+        </div>
+        <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg shadow-sm">
+            <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between">
+                <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Capture event</h2>
+            </div>
+            <div id="behavior-form" class="p-6">
+                {% include 'dashboard/partials/behavior_form.html' %}
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg shadow-sm">
+        <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between">
+            <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Anomaly density (21d)</h2>
+        </div>
+        <div class="p-6">
+            <canvas id="behaviorTimelineChart" height="120"></canvas>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const behaviorTimeline = {{ timeline|safe }};
+    const ctx = document.getElementById('behaviorTimelineChart');
+    if (ctx) {
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: behaviorTimeline.map(item => item.day),
+                datasets: [
+                    {
+                        label: 'Events',
+                        data: behaviorTimeline.map(item => item.total),
+                        backgroundColor: 'rgba(14, 165, 233, 0.6)',
+                        borderRadius: 6,
+                    },
+                    {
+                        label: 'Anomalies',
+                        data: behaviorTimeline.map(item => item.anomalies),
+                        backgroundColor: 'rgba(239, 68, 68, 0.6)',
+                        borderRadius: 6,
+                    }
+                ]
+            },
+            options: {
+                plugins: { legend: { display: false } },
+                responsive: true,
+                scales: {
+                    x: { grid: { display: false } },
+                    y: { beginAtZero: true, grid: { color: 'rgba(148, 163, 184, 0.1)' } }
+                }
+            }
+        });
+    }
+</script>
+{% endblock %}
+

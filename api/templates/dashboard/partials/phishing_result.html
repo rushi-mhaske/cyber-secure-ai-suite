@@ -1,0 +1,165 @@
+{% if scan %}
+<div class="space-y-4">
+    <div class="flex items-start justify-between">
+        <div>
+            <p class="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                {% if scan.target_url %}{{ scan.target_url }}{% else %}Inline submission{% endif %}
+            </p>
+            <p class="text-xs text-gray-500 dark:text-gray-400">{{ scan.created_at|date:"M d, Y H:i" }} • {{ scan.get_input_type_display }}</p>
+        </div>
+        <span class="inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full {% if scan.risk_level == 'critical' %}bg-red-500/10 text-red-500{% elif scan.risk_level == 'high' %}bg-orange-500/10 text-orange-500{% elif scan.risk_level == 'medium' %}bg-amber-500/10 text-amber-500{% else %}bg-emerald-500/10 text-emerald-500{% endif %}">
+            {{ scan.get_risk_level_display }}
+        </span>
+    </div>
+
+    <!-- Primary metrics -->
+    <div class="grid grid-cols-2 gap-3">
+        <div class="rounded-lg border border-gray-200 dark:border-gray-800 p-3 bg-gray-50 dark:bg-gray-900/50">
+            <p class="text-[11px] font-semibold uppercase text-gray-500 dark:text-gray-400">Risk score</p>
+            <p class="mt-1 text-2xl font-semibold text-gray-900 dark:text-gray-100">{{ scan.risk_score }}</p>
+            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Reputation {{ scan.reputation_score }}</p>
+        </div>
+        <div class="rounded-lg border border-gray-200 dark:border-gray-800 p-3">
+            <p class="text-[11px] font-semibold uppercase text-gray-500 dark:text-gray-400">Domain</p>
+            <p class="mt-1 text-sm font-medium text-gray-900 dark:text-gray-100 truncate">{{ scan.metadata.domain|default:'n/a' }}</p>
+            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Age: {{ scan.domain_age_days|default:'unknown' }} days</p>
+        </div>
+    </div>
+
+    <!-- AI/ML layer score breakdown -->
+    {% if scan.metadata.scores %}
+    <div class="rounded-lg border border-gray-200 dark:border-gray-800 p-3">
+        <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase mb-3">Detection layer scores</p>
+        <div class="space-y-2">
+            {% if scan.metadata.scores.url_features is not None %}
+            <div>
+                <div class="flex items-center justify-between mb-1">
+                    <span class="text-xs text-gray-600 dark:text-gray-300">URL Feature Analysis</span>
+                    <span class="text-xs font-semibold text-gray-900 dark:text-gray-100">{{ scan.metadata.scores.url_features|floatformat:1 }}</span>
+                </div>
+                <div class="h-1.5 rounded-full bg-gray-200 dark:bg-gray-700">
+                    <div class="h-1.5 rounded-full bg-amber-500" style="width: {{ scan.metadata.scores.url_features|floatformat:0 }}%"></div>
+                </div>
+            </div>
+            {% endif %}
+            {% if scan.metadata.scores.rf_classifier %}
+            <div>
+                <div class="flex items-center justify-between mb-1">
+                    <span class="text-xs text-gray-600 dark:text-gray-300">Random Forest Classifier (PhishGuard)</span>
+                    <span class="text-xs font-semibold text-gray-900 dark:text-gray-100">{{ scan.metadata.scores.rf_classifier|floatformat:1 }}</span>
+                </div>
+                <div class="h-1.5 rounded-full bg-gray-200 dark:bg-gray-700">
+                    <div class="h-1.5 rounded-full bg-emerald-500" style="width: {{ scan.metadata.scores.rf_classifier|floatformat:0 }}%"></div>
+                </div>
+            </div>
+            {% endif %}
+            {% if scan.metadata.scores.nlp_content is not None %}
+            <div>
+                <div class="flex items-center justify-between mb-1">
+                    <span class="text-xs text-gray-600 dark:text-gray-300">NLTK NLP Analysis</span>
+                    <span class="text-xs font-semibold text-gray-900 dark:text-gray-100">{{ scan.metadata.scores.nlp_content|floatformat:1 }}</span>
+                </div>
+                <div class="h-1.5 rounded-full bg-gray-200 dark:bg-gray-700">
+                    <div class="h-1.5 rounded-full bg-orange-500" style="width: {{ scan.metadata.scores.nlp_content|floatformat:0 }}%"></div>
+                </div>
+            </div>
+            {% endif %}
+            {% if scan.metadata.scores.transformer_nlp %}
+            <div>
+                <div class="flex items-center justify-between mb-1">
+                    <span class="text-xs text-gray-600 dark:text-gray-300">DistilBERT Transformer NLP</span>
+                    <span class="text-xs font-semibold text-gray-900 dark:text-gray-100">{{ scan.metadata.scores.transformer_nlp|floatformat:1 }}</span>
+                </div>
+                <div class="h-1.5 rounded-full bg-gray-200 dark:bg-gray-700">
+                    <div class="h-1.5 rounded-full bg-pink-500" style="width: {{ scan.metadata.scores.transformer_nlp|floatformat:0 }}%"></div>
+                </div>
+            </div>
+            {% endif %}
+            {% if scan.metadata.scores.headers is not None %}
+            <div>
+                <div class="flex items-center justify-between mb-1">
+                    <span class="text-xs text-gray-600 dark:text-gray-300">Header Checks (SPF/DKIM/DMARC)</span>
+                    <span class="text-xs font-semibold text-gray-900 dark:text-gray-100">{{ scan.metadata.scores.headers|floatformat:1 }}</span>
+                </div>
+                <div class="h-1.5 rounded-full bg-gray-200 dark:bg-gray-700">
+                    <div class="h-1.5 rounded-full bg-sky-500" style="width: {{ scan.metadata.scores.headers|floatformat:0 }}%"></div>
+                </div>
+            </div>
+            {% endif %}
+            {% if scan.metadata.scores.gemini %}
+            <div>
+                <div class="flex items-center justify-between mb-1">
+                    <span class="text-xs text-gray-600 dark:text-gray-300">Gemini AI Analysis</span>
+                    <span class="text-xs font-semibold text-gray-900 dark:text-gray-100">{{ scan.metadata.scores.gemini|floatformat:1 }}</span>
+                </div>
+                <div class="h-1.5 rounded-full bg-gray-200 dark:bg-gray-700">
+                    <div class="h-1.5 rounded-full bg-violet-500" style="width: {{ scan.metadata.scores.gemini|floatformat:0 }}%"></div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Gemini indicators -->
+    {% if scan.metadata.indicators %}
+    <div class="rounded-lg border border-violet-200 dark:border-violet-800 p-3 bg-violet-50/40 dark:bg-violet-900/20">
+        <div class="flex items-center gap-2 mb-2">
+            <p class="text-xs font-semibold text-violet-600 dark:text-violet-300 uppercase">Gemini AI Indicators</p>
+            {% if scan.metadata.confidence %}
+            <span class="text-[10px] px-1.5 py-0.5 rounded bg-violet-100 dark:bg-violet-800/50 text-violet-600 dark:text-violet-300">{{ scan.metadata.confidence }} confidence</span>
+            {% endif %}
+        </div>
+        <ul class="space-y-1">
+            {% for indicator in scan.metadata.indicators %}
+            <li class="text-xs text-violet-700 dark:text-violet-200 leading-relaxed">• {{ indicator }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
+    <!-- Detections -->
+    <div class="rounded-lg border border-gray-200 dark:border-gray-800 p-3">
+        <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Detections</p>
+        <ul class="mt-2 space-y-2">
+            {% if scan.detections.domain and scan.detections.domain.reasons %}
+                {% for reason in scan.detections.domain.reasons %}
+                    <li class="text-xs text-gray-600 dark:text-gray-300 leading-relaxed">• {{ reason }}</li>
+                {% endfor %}
+            {% endif %}
+            {% if scan.detections.content and scan.detections.content.findings %}
+                {% for reason in scan.detections.content.findings %}
+                    <li class="text-xs text-gray-600 dark:text-gray-300 leading-relaxed">• {{ reason }}</li>
+                {% endfor %}
+            {% endif %}
+            {% if scan.detections.headers and scan.detections.headers.findings %}
+                {% for reason in scan.detections.headers.findings %}
+                    <li class="text-xs text-gray-600 dark:text-gray-300 leading-relaxed">• {{ reason }}</li>
+                {% endfor %}
+            {% endif %}
+            {% if not scan.detections.domain.reasons and not scan.detections.content.findings and not scan.detections.headers.findings %}
+                <li class="text-xs text-gray-500">No red flags detected.</li>
+            {% endif %}
+        </ul>
+    </div>
+
+    {% if scan.recommendations %}
+    <div class="rounded-lg border border-primary-200 dark:border-primary-800 p-3 bg-primary-50/40 dark:bg-primary-900/20">
+        <p class="text-xs font-semibold text-primary-600 dark:text-primary-300 uppercase">Recommendations</p>
+        <ul class="mt-2 space-y-2">
+            {% for action in scan.recommendations %}
+                <li class="text-xs text-primary-700 dark:text-primary-200 leading-relaxed">• {{ action }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+</div>
+{% else %}
+<p class="text-sm text-gray-500 dark:text-gray-400">Run an analysis to populate insights.</p>
+{% endif %}
+
+{% if recent_scans %}
+<div id="phishing-history" hx-swap-oob="true">
+    {% include 'dashboard/partials/phishing_history.html' with recent_scans=recent_scans %}
+</div>
+{% endif %}

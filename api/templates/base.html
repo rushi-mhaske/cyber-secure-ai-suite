@@ -1,0 +1,546 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="description" content="Nuxt UI-inspired server-rendered dashboard with Django + HTMX">
+    <meta name="theme-color" content="#0284c7">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Dashboard">
+    <title>{% block title %}Dashboard{% endblock %}</title>
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="{% url 'dashboard:manifest' %}">
+    
+    <!-- Apple Touch Icons -->
+    <link rel="apple-touch-icon" sizes="72x72" href="{% static 'icons/icon-72x72.png' %}">
+    <link rel="apple-touch-icon" sizes="96x96" href="{% static 'icons/icon-96x96.png' %}">
+    <link rel="apple-touch-icon" sizes="128x128" href="{% static 'icons/icon-128x128.png' %}">
+    <link rel="apple-touch-icon" sizes="144x144" href="{% static 'icons/icon-144x144.png' %}">
+    <link rel="apple-touch-icon" sizes="152x152" href="{% static 'icons/icon-152x152.png' %}">
+    <link rel="apple-touch-icon" sizes="192x192" href="{% static 'icons/icon-192x192.png' %}">
+    <link rel="apple-touch-icon" sizes="384x384" href="{% static 'icons/icon-384x384.png' %}">
+    <link rel="apple-touch-icon" sizes="512x512" href="{% static 'icons/icon-512x512.png' %}">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" sizes="32x32" href="{% static 'icons/icon-192x192.png' %}">
+    <link rel="shortcut icon" href="{% static 'icons/icon-192x192.png' %}">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            200: '#bae6fd',
+                            300: '#7dd3fc',
+                            400: '#38bdf8',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                            800: '#075985',
+                            900: '#0c4a6e',
+                            950: '#082f49',
+                        },
+                        surface: {
+                            ground: '#f6f9fe',
+                            section: '#ffffff',
+                            card: '#ffffff',
+                            border: '#e8f1f8',
+                            hover: '#e8f1f8',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif'],
+                    },
+                    spacing: {
+                        '18': '4.5rem',
+                        '88': '22rem',
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.2s ease-in-out',
+                        'slide-in': 'slideIn 0.3s ease-out',
+                        'slide-out': 'slideOut 0.3s ease-out',
+                    },
+                    keyframes: {
+                        fadeIn: {
+                            '0%': { opacity: '0' },
+                            '100%': { opacity: '1' },
+                        },
+                        slideIn: {
+                            '0%': { transform: 'translateX(-100%)' },
+                            '100%': { transform: 'translateX(0)' },
+                        },
+                        slideOut: {
+                            '0%': { transform: 'translateX(0)' },
+                            '100%': { transform: 'translateX(-100%)' },
+                        },
+                    },
+                }
+            }
+        }
+    </script>
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+    
+    <style>
+        [x-cloak] { display: none !important; }
+        
+        /* Custom scrollbar */
+        .scrollbar-thin::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .scrollbar-thin::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .scrollbar-thin::-webkit-scrollbar-thumb {
+            background: rgb(203 213 225);
+            border-radius: 3px;
+        }
+        .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+            background: rgb(148 163 184);
+        }
+        .dark .scrollbar-thin::-webkit-scrollbar-thumb {
+            background: rgb(51 65 85);
+        }
+        .dark .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+            background: rgb(71 85 105);
+        }
+        
+        /* Smooth transitions */
+        * {
+            transition-property: color, background-color, border-color, text-decoration-color, fill, stroke;
+            transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+            transition-duration: 150ms;
+        }
+    </style>
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body class="h-full bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100 antialiased">
+    <!-- Hidden checkboxes for state management -->
+    <input type="checkbox" id="dark-mode-toggle" class="hidden" aria-hidden="true">
+    <input type="checkbox" id="sidebar-collapse-toggle" class="hidden" aria-hidden="true">
+    <input type="checkbox" id="mobile-sidebar-toggle" class="hidden" aria-hidden="true">
+    
+    <!-- Mobile Sidebar Overlay -->
+    <label 
+        for="mobile-sidebar-toggle"
+        id="mobile-sidebar-overlay"
+        class="fixed inset-0 bg-black/50 z-40 lg:hidden opacity-0 transition-opacity duration-300 pointer-events-none"
+    ></label>
+    
+    <div class="flex h-full">
+        <!-- Sidebar -->
+        <aside 
+            id="sidebar"
+            class="fixed lg:static inset-y-0 left-0 z-50 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 flex flex-col transition-all duration-300 ease-in-out transform -translate-x-full lg:translate-x-0 flex-shrink-0"
+        >
+            {% include 'includes/sidebar.html' %}
+        </aside>
+        
+        <!-- Main Content -->
+        <div class="flex-1 flex flex-col min-w-0 transition-all duration-300 ease-in-out">
+            <!-- Topbar -->
+            {% include 'includes/topbar.html' %}
+            
+            <!-- Messages -->
+            {% if messages %}
+                <div class="px-4 pt-4">
+                    {% for message in messages %}
+                        <div 
+                            class="mb-4 px-4 py-3 rounded-lg border bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800 shadow-sm flex items-center justify-between animate-fade-in"
+                            :class="{
+                                'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800': '{{ message.tags }}' === 'info',
+                                'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800': '{{ message.tags }}' === 'success',
+                                'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800': '{{ message.tags }}' === 'warning',
+                                'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800': '{{ message.tags }}' === 'error',
+                            }"
+                        >
+                            <span class="text-sm">{{ message }}</span>
+                            <button 
+                                @click="$el.parentElement.remove()"
+                                class="ml-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                            >
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+            
+            <!-- Page Content -->
+            <main id="main-content" class="flex-1 overflow-y-auto p-4 lg:p-6 scrollbar-thin">
+                {% block content %}{% endblock %}
+            </main>
+        </div>
+    </div>
+    
+    <!-- Command Palette Modal -->
+    {% include 'includes/command_palette.html' %}
+    
+    <!-- Theme Management (minimal JS for localStorage) -->
+    <script src="{% static 'js/theme.js' %}"></script>
+    
+    <!-- State Management (for Command Palette, Notifications, etc.) -->
+    <script src="{% static 'js/store.js' %}"></script>
+    <script src="{% static 'js/event-bus.js' %}"></script>
+    <script src="{% static 'js/state-manager.js' %}"></script>
+    
+    <!-- Alpine.js (only for Command Palette and complex interactions) -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.7/dist/cdn.min.js"></script>
+    
+    <!-- Helper functions -->
+    <script>
+        // Mobile sidebar toggle
+        window.toggleSidebar = function() {
+            const toggle = document.getElementById('mobile-sidebar-toggle');
+            if (toggle) {
+                toggle.checked = !toggle.checked;
+            }
+        };
+        
+        window.setSidebarOpen = function(value) {
+            const toggle = document.getElementById('mobile-sidebar-toggle');
+            if (toggle) {
+                toggle.checked = value;
+            }
+        };
+        
+        // Sidebar collapse toggle (desktop)
+        window.toggleSidebarCollapsed = function() {
+            const toggle = document.getElementById('sidebar-collapse-toggle');
+            if (toggle && window.innerWidth >= 1024) {
+                toggle.checked = !toggle.checked;
+            }
+        };
+        
+        // Dark mode toggle
+        window.toggleDarkMode = function() {
+            const toggle = document.getElementById('dark-mode-toggle');
+            if (toggle) {
+                toggle.checked = !toggle.checked;
+                toggle.dispatchEvent(new Event('change'));
+            }
+        };
+        
+        // Command palette data factory for Alpine.js
+        window.commandPaletteData = function() {
+            return {
+                search: '',
+                selectedIndex: 0,
+                commands: [
+                    { name: 'Overview', url: "{% url 'dashboard:home' %}", icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6' },
+                    { name: 'Phishing Lab', url: "{% url 'dashboard:phishing' %}", icon: 'M16.5 10.5V6a4.5 4.5 0 00-9 0v4.5m9 0a4.5 4.5 0 01-9 0m9 0h1.125a2.625 2.625 0 010 5.25h-1.08a2.25 2.25 0 00-1.848.99l-.81 1.215a2.25 2.25 0 01-1.848.99h-.372a2.25 2.25 0 01-1.848-.99l-.81-1.215a2.25 2.25 0 00-1.848-.99H6.375a2.625 2.625 0 010-5.25H7.5' },
+                    { name: 'Document Forensics', url: "{% url 'dashboard:documents' %}", icon: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h6l6 6v10a2 2 0 01-2 2z' },
+                    { name: 'Behavior Analytics', url: "{% url 'dashboard:behavior' %}", icon: 'M3 13.5l6.375-6.375a1.5 1.5 0 012.121 0L21 16.5M3 6h.008M3 6a1.5 1.5 0 103 0 1.5 1.5 0 00-3 0z' },
+                    { name: 'Malware Guard', url: "{% url 'dashboard:malware' %}", icon: 'M12 2a9 9 0 019 9c0 7-9 11-9 11S3 18 3 11a9 9 0 019-9zm0 5v4l2 2' },
+                    { name: 'Alerts & Response', url: "{% url 'dashboard:alerts' %}", icon: 'M10.29 3.86L1.82 18a1 1 0 00.86 1.5h18.64a1 1 0 00.86-1.5L13.71 3.86a1 1 0 00-1.72 0z' },
+                ],
+                init() {
+                    this.$watch('search', () => {
+                        this.selectedIndex = 0;
+                    });
+                },
+                get filteredCommands() {
+                    if (!this.search) return this.commands;
+                    const query = this.search.toLowerCase();
+                    return this.commands.filter(cmd => cmd.name.toLowerCase().includes(query));
+                },
+                moveDown() {
+                    if (!this.filteredCommands.length) return;
+                    this.selectedIndex = Math.min(this.selectedIndex + 1, this.filteredCommands.length - 1);
+                },
+                moveUp() {
+                    if (!this.filteredCommands.length) return;
+                    this.selectedIndex = Math.max(this.selectedIndex - 1, 0);
+                },
+                goToSelected() {
+                    const command = this.filteredCommands[this.selectedIndex];
+                    if (command) {
+                        setCommandPaletteOpen(false);
+                        window.location.href = command.url;
+                    }
+                },
+                reset() {
+                    this.search = '';
+                    this.selectedIndex = 0;
+                },
+                focusInput() {
+                    this.$nextTick(() => {
+                        if (this.$refs.search) {
+                            this.$refs.search.focus();
+                        }
+                    });
+                },
+            };
+        };
+        
+        // Command Palette - uses window.dashboardStore
+        window.toggleCommandPalette = function() {
+            const modal = document.getElementById('commandPaletteModal');
+            if (!modal) return;
+            
+            const isCurrentlyHidden = modal.classList.contains('hidden');
+            
+            if (window.dashboardStore) {
+                window.dashboardStore.commit('toggleCommandPalette');
+                const isOpen = window.dashboardStore.ui.commandPaletteOpen;
+                if (isOpen) {
+                    if (window.Alpine && !modal.__x) {
+                        window.Alpine.initTree(modal);
+                    }
+                    modal.classList.remove('hidden');
+                    if (modal.__x?.$data) {
+                        modal.__x.$data.reset();
+                        modal.__x.$data.focusInput();
+                    }
+                } else {
+                    modal.classList.add('hidden');
+                }
+            } else {
+                // Fallback if store not ready
+                if (isCurrentlyHidden) {
+                    modal.classList.remove('hidden');
+                    if (window.Alpine && !modal.__x) {
+                        window.Alpine.initTree(modal);
+                    }
+                    if (modal.__x?.$data) {
+                        modal.__x.$data.reset();
+                        modal.__x.$data.focusInput();
+                    }
+                } else {
+                    modal.classList.add('hidden');
+                }
+            }
+        };
+        
+        window.setCommandPaletteOpen = function(value) {
+            const modal = document.getElementById('commandPaletteModal');
+            if (!modal) return;
+            
+            const isCurrentlyHidden = modal.classList.contains('hidden');
+            
+            if (window.dashboardStore) {
+                window.dashboardStore.commit('setCommandPaletteOpen', value);
+                if (value) {
+                    if (window.Alpine && !modal.__x) {
+                        window.Alpine.initTree(modal);
+                    }
+                    modal.classList.remove('hidden');
+                    if (modal.__x?.$data) {
+                        if (isCurrentlyHidden) {
+                            modal.__x.$data.reset();
+                        }
+                        modal.__x.$data.focusInput();
+                    }
+                } else {
+                    modal.classList.add('hidden');
+                }
+            } else {
+                // Fallback
+                if (value) {
+                    modal.classList.remove('hidden');
+                    if (window.Alpine && !modal.__x) {
+                        window.Alpine.initTree(modal);
+                    }
+                    if (modal.__x?.$data) {
+                        if (isCurrentlyHidden) {
+                            modal.__x.$data.reset();
+                        }
+                        modal.__x.$data.focusInput();
+                    }
+                } else {
+                    modal.classList.add('hidden');
+                }
+            }
+        };
+    </script>
+    
+    <!-- HTMX -->
+    <script src="https://unpkg.com/htmx.org@2.0.3/dist/htmx.min.js"></script>
+    
+    <!-- CSRF Token for HTMX -->
+    <script>
+        document.body.addEventListener('htmx:configRequest', (event) => {
+            event.detail.headers['X-CSRFToken'] = '{{ csrf_token }}';
+            if (event.detail.target) {
+                event.detail.headers['HX-Target'] = event.detail.target.id || event.detail.target.tagName.toLowerCase();
+            }
+        });
+        
+        // Prevent duplicate content on page navigation
+        document.body.addEventListener('htmx:afterSwap', () => {
+            updateNavigationHighlight();
+            initializePollingElements();
+        });
+        
+        // Update navigation highlighting based on current URL
+        function updateNavigationHighlight() {
+            const currentPath = window.location.pathname;
+            const sidebar = document.querySelector('aside nav');
+            if (!sidebar) return;
+            
+            // Remove active state from all nav links
+            sidebar.querySelectorAll('a').forEach(link => {
+                link.classList.remove('bg-primary-50', 'dark:bg-primary-900/20', 'text-primary-700', 'dark:text-primary-400');
+                link.classList.add('text-gray-700', 'dark:text-gray-300');
+            });
+            
+            // Add active state to matching nav link
+            sidebar.querySelectorAll('a').forEach(link => {
+                const href = link.getAttribute('href');
+                if (href && (currentPath === href || currentPath.startsWith(href + '/'))) {
+                    link.classList.remove('text-gray-700', 'dark:text-gray-300');
+                    link.classList.add('bg-primary-50', 'dark:bg-primary-900/20', 'text-primary-700', 'dark:text-primary-400');
+                }
+            });
+        }
+        
+        // Initialize polling elements (store original triggers)
+        function initializePollingElements() {
+            const pollingElements = document.querySelectorAll('[hx-trigger*="every"]');
+            pollingElements.forEach(el => {
+                // Only store if not already stored
+                if (!el.hasAttribute('data-original-trigger')) {
+                    const trigger = el.getAttribute('hx-trigger');
+                    if (trigger) {
+                        el.setAttribute('data-original-trigger', trigger);
+                    }
+                }
+            });
+        }
+        
+        // Smart polling: pause when tab is inactive or during user interactions
+        let isPageVisible = !document.hidden;
+        let userInteracting = false;
+        let interactionTimeout = null;
+        
+        // Control polling by toggling hx-trigger attribute
+        const togglePolling = (enable) => {
+            // First, ensure all polling elements are tracked
+            initializePollingElements();
+            
+            const pollingElements = document.querySelectorAll('[data-original-trigger]');
+            pollingElements.forEach(el => {
+                if (enable) {
+                    // Restore original trigger
+                    const originalTrigger = el.getAttribute('data-original-trigger');
+                    if (originalTrigger) {
+                        el.setAttribute('hx-trigger', originalTrigger);
+                        // Reinitialize HTMX on this element
+                        if (typeof htmx !== 'undefined') {
+                            htmx.process(el);
+                        }
+                    }
+                } else {
+                    // Disable polling by removing trigger (but keep original in data attribute)
+                    const currentTrigger = el.getAttribute('hx-trigger');
+                    if (currentTrigger && currentTrigger.includes('every')) {
+                        el.removeAttribute('hx-trigger');
+                    }
+                }
+            });
+        };
+        
+        // Store original triggers on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            initializePollingElements();
+            updateNavigationHighlight();
+            
+            // Ensure polling is enabled on page load (if page is visible)
+            if (isPageVisible && !userInteracting) {
+                togglePolling(true);
+            }
+        });
+        
+        // Also update navigation on URL change (for browser back/forward)
+        window.addEventListener('popstate', () => {
+            setTimeout(updateNavigationHighlight, 100);
+        });
+        
+        // Pause polling when tab is hidden
+        document.addEventListener('visibilitychange', () => {
+            isPageVisible = !document.hidden;
+            if (isPageVisible && !userInteracting) {
+                togglePolling(true);
+            } else {
+                togglePolling(false);
+            }
+        });
+        
+        // Pause polling during user interactions (typing, clicking, etc.)
+        const pausePollingOnInteraction = () => {
+            userInteracting = true;
+            clearTimeout(interactionTimeout);
+            togglePolling(false);
+            
+            // Resume after 3 seconds of inactivity (increased from 2s to be more reliable)
+            interactionTimeout = setTimeout(() => {
+                userInteracting = false;
+                if (isPageVisible) {
+                    togglePolling(true);
+                }
+            }, 3000);
+        };
+        
+        // Listen for user interactions (debounced)
+        let interactionDebounce = null;
+        ['input', 'click', 'keydown', 'scroll', 'touchstart'].forEach(eventType => {
+            document.addEventListener(eventType, () => {
+                clearTimeout(interactionDebounce);
+                interactionDebounce = setTimeout(pausePollingOnInteraction, 100);
+            }, { passive: true });
+        });
+        
+        // Command Palette Keyboard Shortcut
+        document.addEventListener('keydown', (e) => {
+            if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+                e.preventDefault();
+                if (window.toggleCommandPalette) {
+                    window.toggleCommandPalette();
+                }
+            }
+        });
+        
+        // Service Worker Registration
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('{% static "js/service-worker.js" %}')
+                    .then((registration) => {
+                        console.log('[PWA] ServiceWorker registered:', registration.scope);
+                        
+                        // Check for updates every hour
+                        setInterval(() => {
+                            registration.update();
+                        }, 3600000);
+                    })
+                    .catch((error) => {
+                        console.log('[PWA] ServiceWorker registration failed:', error);
+                    });
+                
+                // Listen for service worker updates
+                navigator.serviceWorker.addEventListener('controllerchange', () => {
+                    console.log('[PWA] New service worker activated');
+                    // Optionally reload page to get new version
+                    // window.location.reload();
+                });
+            });
+        }
+    </script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

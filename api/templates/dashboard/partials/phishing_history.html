@@ -1,0 +1,26 @@
+<div class="divide-y divide-gray-200 dark:divide-gray-800">
+    {% for scan in recent_scans %}
+    <div class="px-6 py-4 flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+        <div>
+            <p class="text-sm font-medium text-gray-900 dark:text-gray-100">
+                {% if scan.target_url %}{{ scan.target_url }}{% else %}Inline payload{% endif %}
+            </p>
+            <p class="text-xs text-gray-500 dark:text-gray-400">Score {{ scan.risk_score }} • {{ scan.get_risk_level_display }} • {{ scan.created_at|timesince }} ago</p>
+        </div>
+        <div class="flex items-center gap-2">
+            <span class="text-[11px] px-2 py-0.5 rounded-full border {% if scan.risk_level == 'critical' %}border-red-500 text-red-500{% elif scan.risk_level == 'high' %}border-orange-500 text-orange-500{% elif scan.risk_level == 'medium' %}border-amber-500 text-amber-500{% else %}border-emerald-500 text-emerald-500{% endif %}">
+                {{ scan.get_risk_level_display }}
+            </span>
+            <button
+                class="text-xs text-primary-600 dark:text-primary-400 hover:underline"
+                hx-get="{% url 'dashboard:phishing' %}?id={{ scan.id }}"
+                hx-target="#phishing-result"
+                hx-swap="innerHTML"
+            >View</button>
+        </div>
+    </div>
+    {% empty %}
+    <div class="px-6 py-6 text-center text-sm text-gray-500 dark:text-gray-400">No scans yet. Submit a suspicious message to build history.</div>
+    {% endfor %}
+</div>
+

@@ -1,0 +1,29 @@
+<tr id="alert-row-{{ alert.id }}">
+    <td class="px-4 py-3 align-top">
+        <div class="text-sm font-semibold text-gray-900 dark:text-gray-100">{{ alert.title }}</div>
+        <div class="text-xs text-gray-500 dark:text-gray-400 line-clamp-2">{{ alert.description }}</div>
+        <div class="text-[11px] text-gray-400 dark:text-gray-500 mt-1">{{ alert.created_at|timesince }} ago</div>
+    </td>
+    <td class="px-4 py-3 align-top">
+        <span class="inline-flex items-center px-2 py-0.5 text-[11px] rounded-full bg-sky-500/10 text-sky-600 dark:text-sky-300">{{ alert.get_module_display }}</span>
+    </td>
+    <td class="px-4 py-3 align-top">
+        <span class="inline-flex items-center px-2 py-0.5 text-[11px] rounded-full {% if alert.severity == 'critical' %}bg-red-500/10 text-red-500{% elif alert.severity == 'high' %}bg-orange-500/10 text-orange-500{% elif alert.severity == 'medium' %}bg-amber-500/10 text-amber-500{% else %}bg-emerald-500/10 text-emerald-500{% endif %}">
+            {{ alert.get_severity_display }}
+        </span>
+    </td>
+    <td class="px-4 py-3 align-top">
+        <span class="inline-flex items-center px-2 py-0.5 text-[11px] rounded-full {% if alert.status == 'new' %}bg-purple-500/10 text-purple-500{% elif alert.status == 'investigating' %}bg-sky-500/10 text-sky-500{% elif alert.status == 'mitigated' %}bg-emerald-500/10 text-emerald-500{% else %}bg-gray-500/10 text-gray-500{% endif %}">
+            {{ alert.get_status_display }}
+        </span>
+    </td>
+    <td class="px-4 py-3 align-top text-right">
+        <button
+            class="text-xs text-primary-600 dark:text-primary-400 hover:underline"
+            hx-get="{% url 'dashboard:alerts' %}?id={{ alert.id }}"
+            hx-target="#alerts-form"
+            hx-swap="outerHTML"
+        >Manage</button>
+    </td>
+</tr>
+

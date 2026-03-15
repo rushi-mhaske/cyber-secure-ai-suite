@@ -1,0 +1,97 @@
+<form
+    method="post"
+    hx-post="{% url 'dashboard:behavior' %}"
+    hx-target="#behavior-table"
+    hx-swap="innerHTML"
+    class="space-y-4"
+>
+    {% csrf_token %}
+    <div>
+        <label class="block text-sm font-semibold text-gray-800 dark:text-gray-100 mb-1" for="id_actor_identifier">Actor identifier</label>
+        <input
+            type="text"
+            name="actor_identifier"
+            id="id_actor_identifier"
+            value="{{ form.actor_identifier.value|default_if_none:'' }}"
+            placeholder="user@example.com"
+            class="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            required
+        >
+        {% if form.actor_identifier.errors %}
+            <p class="mt-1 text-xs text-red-500">{{ form.actor_identifier.errors.0 }}</p>
+        {% endif %}
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div>
+            <label class="block text-sm font-semibold text-gray-800 dark:text-gray-100 mb-1" for="id_event_type">Event type</label>
+            <select
+                name="event_type"
+                id="id_event_type"
+                class="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            >
+                {% for key, label in form.event_type.field.choices %}
+                    <option value="{{ key }}" {% if form.event_type.value == key %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label class="block text-sm font-semibold text-gray-800 dark:text-gray-100 mb-1" for="id_occurred_at">Occurred at</label>
+            <input
+                type="datetime-local"
+                name="occurred_at"
+                id="id_occurred_at"
+                value="{{ form.occurred_at.value|default_if_none:'' }}"
+                class="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            >
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div>
+            <label class="block text-sm font-semibold text-gray-800 dark:text-gray-100 mb-1" for="id_location">Location</label>
+            <input
+                type="text"
+                name="location"
+                id="id_location"
+                value="{{ form.location.value|default_if_none:'' }}"
+                placeholder="London, UK"
+                class="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            >
+        </div>
+        <div>
+            <label class="block text-sm font-semibold text-gray-800 dark:text-gray-100 mb-1" for="id_device">Device</label>
+            <input
+                type="text"
+                name="device"
+                id="id_device"
+                value="{{ form.device.value|default_if_none:'' }}"
+                placeholder="Chrome on macOS"
+                class="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            >
+        </div>
+    </div>
+
+    <div>
+        <label class="block text-sm font-semibold text-gray-800 dark:text-gray-100 mb-1" for="id_metadata">Metadata JSON</label>
+        <textarea
+            name="metadata"
+            id="id_metadata"
+            rows="3"
+            placeholder='{"ip": "192.0.2.1", "resource": "/finance"}'
+            class="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+        >{{ form.metadata.value|default_if_none:'' }}</textarea>
+        {% if form.metadata.errors %}
+            <p class="mt-1 text-xs text-red-500">{{ form.metadata.errors.0 }}</p>
+        {% endif %}
+    </div>
+
+    <div class="flex items-center justify-between">
+        <button type="submit" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium transition">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+            Log and score event
+        </button>
+        <span class="text-xs text-gray-400">Baseline adapts from last 30 days.</span>
+    </div>
+</form>
+

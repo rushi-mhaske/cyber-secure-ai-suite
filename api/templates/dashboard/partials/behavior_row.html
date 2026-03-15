@@ -1,0 +1,47 @@
+<tr>
+    <td class="px-4 py-3 align-top">
+        <div class="text-sm font-semibold text-gray-900 dark:text-gray-100">{{ event.actor_identifier }}</div>
+        <div class="text-xs text-gray-500 dark:text-gray-400">{{ event.occurred_at|timesince }} ago</div>
+    </td>
+    <td class="px-4 py-3 align-top">
+        <div class="text-sm text-gray-800 dark:text-gray-200">{{ event.get_event_type_display }}</div>
+        <div class="text-xs text-gray-500 dark:text-gray-400">{{ event.device|default:'Unknown device' }}</div>
+    </td>
+    <td class="px-4 py-3 align-top">
+        <div class="text-xs text-gray-600 dark:text-gray-300">{{ event.location|default:'Unknown location' }}</div>
+        {% if event.metadata.ip %}
+        <div class="text-[11px] text-gray-400">IP {{ event.metadata.ip }}</div>
+        {% endif %}
+        <!-- Detection mode badge -->
+        <div class="mt-1.5 flex items-center gap-1.5">
+            {% if event.metadata.detection_mode == 'ml' %}
+            <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-sky-100 dark:bg-sky-900/40 text-sky-600 dark:text-sky-300">
+                <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17H3a2 2 0 01-2-2V5a2 2 0 012-2h16a2 2 0 012 2v10a2 2 0 01-2 2h-2"></path></svg>
+                IsolationForest
+            </span>
+            {% elif event.metadata.detection_mode == 'rule' %}
+            <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400">
+                Rule-based
+            </span>
+            {% endif %}
+            {% if event.metadata.history_count %}
+            <span class="text-[10px] text-gray-400">{{ event.metadata.history_count }} events</span>
+            {% endif %}
+        </div>
+    </td>
+    <td class="px-4 py-3 align-top">
+        <div class="inline-flex items-center gap-2">
+            <span class="text-sm font-semibold {% if event.is_anomalous %}text-red-500{% else %}text-emerald-500{% endif %}">{{ event.risk_score }}</span>
+            <span class="text-[11px] px-2 py-0.5 rounded-full border {% if event.is_anomalous %}border-red-500 text-red-500{% else %}border-emerald-500 text-emerald-500{% endif %}">
+                {% if event.is_anomalous %}Anomalous{% else %}Baseline{% endif %}
+            </span>
+        </div>
+        {% if event.anomaly_reasons %}
+        <ul class="mt-2 space-y-1">
+            {% for reason in event.anomaly_reasons %}
+            <li class="text-[11px] text-gray-500 dark:text-gray-400 leading-relaxed">• {{ reason }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+    </td>
+</tr>

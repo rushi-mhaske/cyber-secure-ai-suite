@@ -1,0 +1,66 @@
+{% url 'dashboard:home' as home_url %}
+{% url 'dashboard:phishing' as phishing_url %}
+{% url 'dashboard:documents' as documents_url %}
+{% url 'dashboard:behavior' as behavior_url %}
+{% url 'dashboard:malware' as malware_url %}
+{% url 'dashboard:alerts' as alerts_url %}
+
+<div class="flex flex-col h-full">
+    <div class="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-800">
+        <div class="flex items-center gap-3 hidden" id="sidebar-header-content">
+            <div class="w-9 h-9 bg-primary-600 dark:bg-primary-500 rounded-lg flex items-center justify-center">
+                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c1.657 0 3-1.343 3-3S13.657 2 12 2 9 3.343 9 5s1.343 3 3 3zm0 4c-4 0-7 3-7 7h2a5 5 0 015-5h0a5 5 0 015 5h2c0-4-3-7-7-7z" />
+                </svg>
+            </div>
+            <span class="font-bold text-gray-900 dark:text-gray-100">Cyber AI</span>
+        </div>
+        <div class="flex items-center gap-2">
+            <label
+                for="sidebar-collapse-toggle"
+                class="hidden lg:flex p-1.5 rounded-lg text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer relative"
+                aria-label="Toggle sidebar"
+            >
+                <svg class="w-5 h-5" id="sidebar-collapse-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                </svg>
+                <svg class="w-5 h-5 hidden" id="sidebar-expand-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                </svg>
+            </label>
+            <label
+                for="mobile-sidebar-toggle"
+                class="lg:hidden p-1.5 rounded-lg text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer"
+                aria-label="Close sidebar"
+            >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </label>
+        </div>
+    </div>
+
+    <nav class="flex-1 overflow-y-auto scrollbar-thin p-4 space-y-1">
+        {% include 'includes/sidebar_link.html' with url=home_url icon="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" label="Overview" %}
+        {% include 'includes/sidebar_link.html' with url=phishing_url icon="M16.5 10.5V6a4.5 4.5 0 00-9 0v4.5m9 0a4.5 4.5 0 01-9 0m9 0h1.125a2.625 2.625 0 010 5.25h-1.08a2.25 2.25 0 00-1.848.99l-.81 1.215a2.25 2.25 0 01-1.848.99h-.372a2.25 2.25 0 01-1.848-.99l-.81-1.215a2.25 2.25 0 00-1.848-.99H6.375a2.625 2.625 0 010-5.25H7.5" label="Phishing Lab" %}
+        {% include 'includes/sidebar_link.html' with url=documents_url icon="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h6l6 6v10a2 2 0 01-2 2z" label="Document Forensics" %}
+        {% include 'includes/sidebar_link.html' with url=behavior_url icon="M3 13.5l6.375-6.375a1.5 1.5 0 012.121 0L21 16.5M3 6h.008M3 6a1.5 1.5 0 103 0 1.5 1.5 0 00-3 0z" label="Behavior Analytics" %}
+        {% include 'includes/sidebar_link.html' with url=malware_url icon="M12 2a9 9 0 019 9c0 7-9 11-9 11S3 18 3 11a9 9 0 019-9zm0 5v4l2 2" label="Malware Guard" %}
+        {% include 'includes/sidebar_link.html' with url=alerts_url icon="M10.29 3.86L1.82 18a1 1 0 00.86 1.5h18.64a1 1 0 00.86-1.5L13.71 3.86a1 1 0 00-1.72 0z" label="Alerts & Response" %}
+    </nav>
+
+    <div class="p-4 border-t border-gray-200 dark:border-gray-800">
+        {% if user.is_authenticated %}
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-primary-600 dark:bg-primary-500 text-white flex items-center justify-center text-sm font-semibold flex-shrink-0">
+                    {{ user.first_name.0|default:user.email.0|upper }}{{ user.last_name.0|default:""|upper }}
+                </div>
+                <div class="flex-1 min-w-0 hidden" id="sidebar-footer-content">
+                    <div class="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate">{{ user.get_full_name|default:user.email }}</div>
+                    <div class="text-xs text-gray-500 dark:text-gray-400 truncate">Security role: Analyst</div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+

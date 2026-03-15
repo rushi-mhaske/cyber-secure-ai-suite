@@ -1,0 +1,73 @@
+<div id="alerts-form" x-data="{ alertId: '{{ form.alert_id.value|default_if_none:'' }}' }">
+<form
+    method="post"
+    hx-post="{% url 'dashboard:alerts' %}"
+    hx-target="#alerts-form"
+    hx-swap="outerHTML"
+    class="space-y-4"
+>
+    {% csrf_token %}
+    <input type="hidden" name="alert_id" id="id_alert_id" value="{{ form.alert_id.value|default_if_none:'' }}">
+
+    {% if form.alert_id.errors %}
+        <p class="text-xs text-red-500">{{ form.alert_id.errors.0 }}</p>
+    {% endif %}
+
+    <div x-show="!alertId" class="flex items-center gap-2 px-3 py-2 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-300 text-xs">
+        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+        Click <strong>Manage</strong> on an alert row to select it first.
+    </div>
+
+    <div x-show="alertId" x-transition class="flex items-center gap-2 px-3 py-2 rounded-lg bg-primary-50 dark:bg-primary-900/20 border border-primary-200 dark:border-primary-800 text-primary-700 dark:text-primary-300 text-xs">
+        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+        Managing alert <strong x-text="'#' + alertId"></strong>
+    </div>
+
+    <div>
+        <label class="block text-sm font-semibold text-gray-800 dark:text-gray-100 mb-1" for="id_action">Action</label>
+        <select
+            name="action"
+            id="id_action"
+            class="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            x-bind:disabled="!alertId"
+        >
+            {% for value, label in form.action.field.choices %}
+                <option value="{{ value }}" {% if form.action.value == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+        </select>
+        {% if form.action.errors %}
+            <p class="mt-1 text-xs text-red-500">{{ form.action.errors.0 }}</p>
+        {% endif %}
+    </div>
+
+    <div>
+        <label class="block text-sm font-semibold text-gray-800 dark:text-gray-100 mb-1" for="id_note">Note</label>
+        <textarea
+            name="note"
+            id="id_note"
+            rows="3"
+            placeholder="Acknowledge the alert and add remediation notes"
+            class="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            x-bind:disabled="!alertId"
+        >{{ form.note.value|default_if_none:'' }}</textarea>
+    </div>
+
+    <button
+        type="submit"
+        class="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition"
+        x-bind:disabled="!alertId"
+        x-bind:class="alertId
+            ? 'bg-primary-600 hover:bg-primary-700 text-white cursor-pointer'
+            : 'bg-gray-200 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed'"
+    >
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+        Apply update
+    </button>
+</form>
+</div>
+
+{% if alerts %}
+<div id="alerts-table" hx-swap-oob="true">
+    {% include 'dashboard/partials/alerts_table.html' with alerts=alerts %}
+</div>
+{% endif %}

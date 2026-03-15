@@ -1,0 +1,16 @@
+<a
+    href="{{ url }}"
+    class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 {% if request.path == url or request.path|slice:':-1' == url %}bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300{% else %}text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800{% endif %}"
+    hx-get="{{ url }}"
+    hx-target="#main-content"
+    hx-select="#main-content"
+    hx-swap="outerHTML"
+    hx-push-url="true"
+    onclick="if(window.innerWidth < 1024) window.setSidebarOpen(false)"
+>
+    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ icon }}" />
+    </svg>
+    <span class="hidden" data-sidebar-label>{{ label }}</span>
+</a>
+

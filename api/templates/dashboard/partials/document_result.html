@@ -1,0 +1,176 @@
+{% if analysis %}
+<div class="space-y-4">
+    <div class="flex items-start justify-between">
+        <div>
+            <p class="text-sm font-semibold text-gray-900 dark:text-gray-100">{{ analysis.file_name }}</p>
+            <p class="text-xs text-gray-500 dark:text-gray-400">{{ analysis.file_type|default:'unknown type' }} • {{ analysis.file_size|filesizeformat }} • {{ analysis.created_at|date:"M d, Y H:i" }}</p>
+        </div>
+        <span class="inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full {% if analysis.verdict == 'forged' %}bg-red-500/10 text-red-500{% elif analysis.verdict == 'suspicious' %}bg-amber-500/10 text-amber-500{% else %}bg-emerald-500/10 text-emerald-500{% endif %}">
+            {{ analysis.get_verdict_display }}
+        </span>
+    </div>
+
+    <!-- Top-line metrics grid -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div class="rounded-lg border border-gray-200 dark:border-gray-800 p-3 bg-gray-50 dark:bg-gray-900/40">
+            <p class="text-[11px] font-semibold uppercase text-gray-500 dark:text-gray-400">ELA score</p>
+            <p class="mt-1 text-xl font-semibold text-gray-900 dark:text-gray-100">{{ analysis.ela_score|default:'—' }}</p>
+            {% if analysis.metadata.hotspot_count %}
+            <p class="mt-0.5 text-[11px] text-amber-500">{{ analysis.metadata.hotspot_count }} hotspot{{ analysis.metadata.hotspot_count|pluralize }}</p>
+            {% endif %}
+        </div>
+        <div class="rounded-lg border border-gray-200 dark:border-gray-800 p-3 bg-gray-50 dark:bg-gray-900/40">
+            <p class="text-[11px] font-semibold uppercase text-gray-500 dark:text-gray-400">EXIF anomaly</p>
+            <p class="mt-1 text-xl font-semibold text-gray-900 dark:text-gray-100">{{ analysis.metadata.scores.exif|default:'—'|floatformat:1 }}</p>
+            <p class="mt-0.5 text-[11px] text-gray-500 dark:text-gray-400">Metadata integrity</p>
+        </div>
+        <div class="rounded-lg border border-gray-200 dark:border-gray-800 p-3 bg-gray-50 dark:bg-gray-900/40">
+            <p class="text-[11px] font-semibold uppercase text-gray-500 dark:text-gray-400">OCR confidence</p>
+            <p class="mt-1 text-xl font-semibold text-gray-900 dark:text-gray-100">{{ analysis.text_confidence|default:'—'|floatformat:0 }}%</p>
+            <p class="mt-0.5 text-[11px] text-gray-500 dark:text-gray-400">Avg word confidence</p>
+        </div>
+        <div class="rounded-lg border border-gray-200 dark:border-gray-800 p-3 bg-gray-50 dark:bg-gray-900/40">
+            <p class="text-[11px] font-semibold uppercase text-gray-500 dark:text-gray-400">Semantic</p>
+            <p class="mt-1 text-xl font-semibold text-gray-900 dark:text-gray-100">{{ analysis.semantic_score|default:'—' }}</p>
+            <p class="mt-0.5 text-[11px] text-gray-500 dark:text-gray-400">Consistency check</p>
+        </div>
+    </div>
+
+    <!-- Forensic technique score breakdown -->
+    {% if analysis.metadata.scores %}
+    <div class="rounded-lg border border-gray-200 dark:border-gray-800 p-3">
+        <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase mb-3">Forensic technique scores</p>
+        <div class="space-y-2">
+            {% if analysis.metadata.scores.ela is not None %}
+            <div>
+                <div class="flex items-center justify-between mb-1">
+                    <span class="text-xs text-gray-600 dark:text-gray-300">Multi-pass ELA (3 quality levels)</span>
+                    <span class="text-xs font-semibold text-gray-900 dark:text-gray-100">{{ analysis.metadata.scores.ela|floatformat:1 }}</span>
+                </div>
+                <div class="h-1.5 rounded-full bg-gray-200 dark:bg-gray-700">
+                    <div class="h-1.5 rounded-full bg-red-500" style="width: {{ analysis.metadata.scores.ela|floatformat:0 }}%"></div>
+                </div>
+            </div>
+            {% endif %}
+            {% if analysis.metadata.scores.cnn %}
+            <div>
+                <div class="flex items-center justify-between mb-1">
+                    <span class="text-xs text-gray-600 dark:text-gray-300">CNN Forgery Detector (TensorFlow)</span>
+                    <span class="text-xs font-semibold text-gray-900 dark:text-gray-100">{{ analysis.metadata.scores.cnn|floatformat:1 }}</span>
+                </div>
+                <div class="h-1.5 rounded-full bg-gray-200 dark:bg-gray-700">
+                    <div class="h-1.5 rounded-full bg-pink-500" style="width: {{ analysis.metadata.scores.cnn|floatformat:0 }}%"></div>
+                </div>
+            </div>
+            {% endif %}
+            {% if analysis.metadata.scores.exif is not None %}
+            <div>
+                <div class="flex items-center justify-between mb-1">
+                    <span class="text-xs text-gray-600 dark:text-gray-300">EXIF Metadata Analysis</span>
+                    <span class="text-xs font-semibold text-gray-900 dark:text-gray-100">{{ analysis.metadata.scores.exif|floatformat:1 }}</span>
+                </div>
+                <div class="h-1.5 rounded-full bg-gray-200 dark:bg-gray-700">
+                    <div class="h-1.5 rounded-full bg-amber-500" style="width: {{ analysis.metadata.scores.exif|floatformat:0 }}%"></div>
+                </div>
+            </div>
+            {% endif %}
+            {% if analysis.metadata.scores.ocr_anomaly is not None %}
+            <div>
+                <div class="flex items-center justify-between mb-1">
+                    <span class="text-xs text-gray-600 dark:text-gray-300">OCR Anomaly Score</span>
+                    <span class="text-xs font-semibold text-gray-900 dark:text-gray-100">{{ analysis.metadata.scores.ocr_anomaly|floatformat:1 }}</span>
+                </div>
+                <div class="h-1.5 rounded-full bg-gray-200 dark:bg-gray-700">
+                    <div class="h-1.5 rounded-full bg-orange-500" style="width: {{ analysis.metadata.scores.ocr_anomaly|floatformat:0 }}%"></div>
+                </div>
+            </div>
+            {% endif %}
+            {% if analysis.metadata.scores.semantic is not None %}
+            <div>
+                <div class="flex items-center justify-between mb-1">
+                    <span class="text-xs text-gray-600 dark:text-gray-300">Semantic Consistency</span>
+                    <span class="text-xs font-semibold text-gray-900 dark:text-gray-100">{{ analysis.metadata.scores.semantic|floatformat:1 }}</span>
+                </div>
+                <div class="h-1.5 rounded-full bg-gray-200 dark:bg-gray-700">
+                    <div class="h-1.5 rounded-full bg-sky-500" style="width: {{ analysis.metadata.scores.semantic|floatformat:0 }}%"></div>
+                </div>
+            </div>
+            {% endif %}
+            {% if analysis.metadata.scores.gemini %}
+            <div>
+                <div class="flex items-center justify-between mb-1">
+                    <span class="text-xs text-gray-600 dark:text-gray-300">Gemini Vision Analysis</span>
+                    <span class="text-xs font-semibold text-gray-900 dark:text-gray-100">{{ analysis.metadata.scores.gemini|floatformat:1 }}</span>
+                </div>
+                <div class="h-1.5 rounded-full bg-gray-200 dark:bg-gray-700">
+                    <div class="h-1.5 rounded-full bg-violet-500" style="width: {{ analysis.metadata.scores.gemini|floatformat:0 }}%"></div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- EXIF anomaly findings -->
+    {% if analysis.metadata.exif_findings %}
+    <div class="rounded-lg border border-amber-200 dark:border-amber-800 p-3 bg-amber-50/30 dark:bg-amber-900/10">
+        <p class="text-xs font-semibold text-amber-600 dark:text-amber-300 uppercase mb-2">EXIF Metadata Anomalies</p>
+        <ul class="space-y-1">
+            {% for finding in analysis.metadata.exif_findings %}
+            <li class="text-xs text-amber-700 dark:text-amber-200 leading-relaxed">• {{ finding }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
+    <!-- Gemini Vision suspicious areas -->
+    {% if analysis.metadata.gemini_findings %}
+    <div class="rounded-lg border border-violet-200 dark:border-violet-800 p-3 bg-violet-50/30 dark:bg-violet-900/10">
+        <p class="text-xs font-semibold text-violet-600 dark:text-violet-300 uppercase mb-2">Gemini Vision Analysis</p>
+        {% if analysis.metadata.gemini_findings.suspicious_areas %}
+        <ul class="space-y-1 mb-2">
+            {% for area in analysis.metadata.gemini_findings.suspicious_areas %}
+            <li class="text-xs text-violet-700 dark:text-violet-200 leading-relaxed">• {{ area }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+        {% if analysis.metadata.gemini_findings.confidence %}
+        <p class="text-[11px] text-violet-500">Confidence: {{ analysis.metadata.gemini_findings.confidence }}</p>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- Document findings -->
+    {% if analysis.findings %}
+    <div class="rounded-lg border border-gray-200 dark:border-gray-800 p-3">
+        <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Document Findings</p>
+        <ul class="mt-2 space-y-1">
+            {% for key, value in analysis.findings.items %}
+                {% if value %}
+                <li class="text-xs text-gray-600 dark:text-gray-300 leading-relaxed">• <span class="font-medium">{{ key|title }}:</span>
+                    {% if value|stringformat:"s" == "True" %}Yes
+                    {% elif value|stringformat:"s" == "False" %}No
+                    {% else %}{{ value }}{% endif %}
+                </li>
+                {% endif %}
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
+    {% if analysis.ocr_text %}
+    <div class="rounded-lg border border-gray-200 dark:border-gray-800 p-3">
+        <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">OCR Extract</p>
+        <p class="mt-2 text-xs text-gray-600 dark:text-gray-300 whitespace-pre-wrap max-h-40 overflow-y-auto scrollbar-thin">{{ analysis.ocr_text|truncatechars:500 }}</p>
+    </div>
+    {% endif %}
+</div>
+{% else %}
+<p class="text-sm text-gray-500 dark:text-gray-400">Upload a document to run forensic checks.</p>
+{% endif %}
+
+{% if recent_analyses %}
+<div id="document-history" hx-swap-oob="true">
+    {% include 'dashboard/partials/document_history.html' with recent_analyses=recent_analyses %}
+</div>
+{% endif %}

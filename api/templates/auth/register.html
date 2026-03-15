@@ -1,0 +1,77 @@
+{% extends 'auth/base_auth.html' %}
+
+{% block title %}Create Account · Cyber AI{% endblock %}
+
+{% block content %}
+<div class="bg-white dark:bg-gray-900/80 shadow-xl shadow-primary-600/10 border border-gray-100 dark:border-gray-800 rounded-2xl p-8">
+    <div class="mb-6 text-center">
+        <div class="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-primary-600 text-white">
+            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.5v15m7.5-7.5h-15" />
+            </svg>
+        </div>
+        <h1 class="text-2xl font-semibold text-gray-900 dark:text-gray-100">Join the Cyber AI Workspace</h1>
+        <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">Provision a personal account for the dashboard.</p>
+    </div>
+
+    <form method="post" class="space-y-5">
+        {% csrf_token %}
+        {% if form.non_field_errors %}
+            <div class="rounded-lg border border-red-200 bg-red-50/70 px-3 py-2 text-sm text-red-700 dark:border-red-900/50 dark:bg-red-900/30 dark:text-red-200">
+                {{ form.non_field_errors|join:' ' }}
+            </div>
+        {% endif %}
+
+        <div class="grid gap-5 sm:grid-cols-2">
+            <div class="space-y-2">
+                <label for="id_first_name" class="text-sm font-medium text-gray-700 dark:text-gray-200">First name</label>
+                {{ form.first_name }}
+                {% if form.first_name.errors %}
+                    <p class="text-sm text-red-600 dark:text-red-400">{{ form.first_name.errors|join:' ' }}</p>
+                {% endif %}
+            </div>
+            <div class="space-y-2">
+                <label for="id_last_name" class="text-sm font-medium text-gray-700 dark:text-gray-200">Last name</label>
+                {{ form.last_name }}
+                {% if form.last_name.errors %}
+                    <p class="text-sm text-red-600 dark:text-red-400">{{ form.last_name.errors|join:' ' }}</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="space-y-2">
+            <label for="id_email" class="text-sm font-medium text-gray-700 dark:text-gray-200">Work email</label>
+            {{ form.email }}
+            {% if form.email.errors %}
+                <p class="text-sm text-red-600 dark:text-red-400">{{ form.email.errors|join:' ' }}</p>
+            {% endif %}
+        </div>
+
+        <div class="space-y-2">
+            <label for="id_password1" class="text-sm font-medium text-gray-700 dark:text-gray-200">Password</label>
+            {{ form.password1 }}
+            {% if form.password1.help_text %}
+                <p class="text-xs text-gray-500 dark:text-gray-400">{{ form.password1.help_text }}</p>
+            {% endif %}
+            {% if form.password1.errors %}
+                <p class="text-sm text-red-600 dark:text-red-400">{{ form.password1.errors|join:' ' }}</p>
+            {% endif %}
+        </div>
+
+        <div class="space-y-2">
+            <label for="id_password2" class="text-sm font-medium text-gray-700 dark:text-gray-200">Confirm password</label>
+            {{ form.password2 }}
+            {% if form.password2.errors %}
+                <p class="text-sm text-red-600 dark:text-red-400">{{ form.password2.errors|join:' ' }}</p>
+            {% endif %}
+        </div>
+
+        <button type="submit" class="w-full rounded-lg bg-primary-600 py-2.5 text-sm font-semibold text-white hover:bg-primary-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500">Create Account</button>
+    </form>
+
+    <p class="mt-6 text-center text-sm text-gray-600 dark:text-gray-400">
+        Already onboarded?
+        <a href="{% url 'authentication:login' %}" class="font-medium text-primary-600 hover:text-primary-500">Return to sign-in</a>.
+    </p>
+</div>
+{% endblock %}

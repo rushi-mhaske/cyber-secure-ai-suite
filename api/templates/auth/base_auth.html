@@ -1,0 +1,92 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>{% block title %}Cyber AI Access{% endblock %}</title>
+    <meta name="theme-color" content="#0284c7">
+    <link rel="icon" type="image/png" sizes="32x32" href="{% static 'icons/icon-192x192.png' %}">
+
+    <script>
+        const storedTheme = localStorage.getItem('dashboard-theme');
+        const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        if (storedTheme === 'dark' || (!storedTheme && prefersDark)) {
+            document.documentElement.classList.add('dark');
+        }
+    </script>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            200: '#bae6fd',
+                            300: '#7dd3fc',
+                            400: '#38bdf8',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                            800: '#075985',
+                            900: '#0c4a6e',
+                            950: '#082f49',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="h-full bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100 antialiased">
+    <div class="min-h-full flex flex-col">
+        <header class="flex items-center justify-end p-4">
+            <button
+                type="button"
+                id="themeToggle"
+                class="inline-flex items-center gap-2 rounded-full border border-gray-200 dark:border-gray-700 px-3 py-1 text-xs font-medium text-gray-600 dark:text-gray-300 hover:border-primary-500 hover:text-primary-600 dark:hover:text-primary-400 transition"
+            >
+                <svg class="w-4 h-4 block dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                </svg>
+                <svg class="w-4 h-4 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 0 008.354-5.646z" />
+                </svg>
+                <span>Theme</span>
+            </button>
+        </header>
+
+        <main class="flex-1 flex items-center justify-center px-4 py-12">
+            <div class="w-full max-w-md">
+                {% if messages %}
+                    <div class="space-y-2 mb-6">
+                        {% for message in messages %}
+                            <div class="rounded-lg border px-4 py-2 text-sm bg-white/80 dark:bg-gray-900/70 border-gray-200 dark:border-gray-700">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+                {% block content %}{% endblock %}
+            </div>
+        </main>
+
+        <footer class="px-4 py-6 text-center text-xs text-gray-500 dark:text-gray-400">
+            Cyber AI Platform · Stay ahead of threats
+        </footer>
+    </div>
+
+    <script>
+        document.getElementById('themeToggle').addEventListener('click', () => {
+            document.documentElement.classList.toggle('dark');
+            const mode = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+            localStorage.setItem('dashboard-theme', mode);
+        });
+    </script>
+</body>
+</html>

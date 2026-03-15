@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+
+{% block title %}Document Forensics - Cyber AI{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Document Forgery Detection</h1>
+            <p class="text-sm text-gray-500 dark:text-gray-400">ELA, OCR, and semantic validation to expose tampered artifacts.</p>
+        </div>
+        <a href="{% url 'dashboard:alerts' %}" class="inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium bg-primary-600 text-white hover:bg-primary-700 transition">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6l4 2"></path></svg>
+            View alerts
+        </a>
+    </div>
+
+    <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+        <div class="xl:col-span-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg shadow-sm">
+            <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between">
+                <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Upload document</h2>
+                <span class="text-xs text-gray-500 dark:text-gray-400">Supports PDF, Office, and image formats</span>
+            </div>
+            <div id="document-form" class="p-6">
+                {% include 'dashboard/partials/document_form.html' %}
+            </div>
+        </div>
+        <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg shadow-sm">
+            <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between">
+                <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Latest verdict</h2>
+                {% if latest_analysis %}
+                <span class="text-xs text-gray-500 dark:text-gray-400">{{ latest_analysis.created_at|timesince }} ago</span>
+                {% endif %}
+            </div>
+            <div id="document-result" class="p-6">
+                {% include 'dashboard/partials/document_result.html' with analysis=latest_analysis recent_analyses=recent_analyses %}
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg shadow-sm">
+        <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between">
+            <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Analysis history</h2>
+            <span class="text-xs text-gray-500 dark:text-gray-400">Last {{ recent_analyses|length }} uploads</span>
+        </div>
+        <div id="document-history" class="divide-y divide-gray-200 dark:divide-gray-800">
+            {% include 'dashboard/partials/document_history.html' %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+

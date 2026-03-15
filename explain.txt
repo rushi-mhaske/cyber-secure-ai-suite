@@ -1,0 +1,11 @@
+
+
+Tech Stack: Django, TailwindCSS, HTMX, Alpine.js
+
+1. Phishing
+2. Document Forgery Detection
+3. Behavioral Anomaly Monitoring
+4. Malware File Upload Prevention
+5. Auth Model
+6. UI Dashboard
+7. SQLite Database

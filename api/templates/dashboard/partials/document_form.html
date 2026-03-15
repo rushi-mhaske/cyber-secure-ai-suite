@@ -1,0 +1,45 @@
+<form
+    method="post"
+    enctype="multipart/form-data"
+    hx-post="{% url 'dashboard:documents' %}"
+    hx-encoding="multipart/form-data"
+    hx-target="#document-result"
+    hx-swap="innerHTML"
+    class="space-y-5"
+>
+    {% csrf_token %}
+    <div>
+        <label class="block text-sm font-semibold text-gray-800 dark:text-gray-100 mb-2" for="id_file">Select file</label>
+        <input
+            type="file"
+            name="file"
+            id="id_file"
+            accept=".pdf,.png,.jpg,.jpeg,.doc,.docx"
+            class="w-full text-sm text-gray-500 dark:text-gray-300 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-primary-50 file:text-primary-600 hover:file:bg-primary-100 dark:file:bg-primary-900/40 dark:file:text-primary-200"
+            required
+        >
+        {% if form.file.errors %}
+            <p class="mt-2 text-xs text-red-500">{{ form.file.errors.0 }}</p>
+        {% endif %}
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <label class="inline-flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+            <input type="checkbox" name="run_ocr" {% if form.run_ocr.value or form.run_ocr.value is None %}checked{% endif %} class="rounded border-gray-300 text-primary-600 focus:ring-primary-500">
+            Run OCR extraction
+        </label>
+        <label class="inline-flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+            <input type="checkbox" name="run_semantic" {% if form.run_semantic.value or form.run_semantic.value is None %}checked{% endif %} class="rounded border-gray-300 text-primary-600 focus:ring-primary-500">
+            Semantic consistency check
+        </label>
+    </div>
+
+    <div class="flex items-center justify-between">
+        <button type="submit" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium transition">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4"></path></svg>
+            Analyse document
+        </button>
+        <span class="text-xs text-gray-400">We never persist raw files beyond analysis.</span>
+    </div>
+</form>
+

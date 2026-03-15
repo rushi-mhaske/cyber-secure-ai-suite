@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+
+{% block title %}Alerts & Response - Cyber AI{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Security Alerts & Playbooks</h1>
+            <p class="text-sm text-gray-500 dark:text-gray-400">Prioritise, acknowledge, and resolve incidents across all modules.</p>
+        </div>
+        <span class="inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium bg-primary-50 text-primary-600 dark:bg-primary-900/20 dark:text-primary-300">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7l6 6-6 6M21 7l-6 6 6 6"></path></svg>
+            {{ alerts|length }} alerts in queue
+        </span>
+    </div>
+
+    <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+        <div class="xl:col-span-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg shadow-sm">
+            <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between">
+                <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Alert feed</h2>
+                <button
+                    hx-get="{% url 'dashboard:alerts' %}"
+                    hx-target="#alerts-table"
+                    hx-swap="innerHTML"
+                    class="text-xs text-primary-600 dark:text-primary-400 hover:underline"
+                >Refresh</button>
+            </div>
+            <div id="alerts-table">
+                {% include 'dashboard/partials/alerts_table.html' %}
+            </div>
+        </div>
+        <div class="space-y-6">
+            <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg shadow-sm">
+                <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-800">
+                    <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Update alert</h2>
+                </div>
+                <div class="p-6">
+                    {% include 'dashboard/partials/alerts_form.html' %}
+                </div>
+            </div>
+            <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg shadow-sm">
+                <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between">
+                    <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Severity mix</h2>
+                </div>
+                <div class="p-6">
+                    <canvas id="severityChart" height="220"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const severityData = {{ severity_breakdown|safe }};
+    const ctxSeverity = document.getElementById('severityChart');
+    if (ctxSeverity) {
+        new Chart(ctxSeverity, {
+            type: 'doughnut',
+            data: {
+                labels: severityData.map(item => item.severity),
+                datasets: [{
+                    data: severityData.map(item => item.total),
+                    backgroundColor: ['#ef4444', '#f97316', '#22c55e', '#94a3b8'],
+                    borderWidth: 0,
+                }]
+            },
+            options: {
+                cutout: '70%',
+                plugins: { legend: { position: 'bottom', labels: { usePointStyle: true } } }
+            }
+        });
+    }
+</script>
+{% endblock %}
+
